@@ -3,9 +3,13 @@ package org.example;
 import org.example.model.ElectronicDevice;
 import org.example.model.Smartphone;
 import org.example.model.Television;
+import org.example.model.Owner;
 
 import org.example.dao.ElectronicDeviceDAO;
 import org.example.dao.ElectronicDeviceDAOImpl;
+
+import org.example.dao.OwnerDAO;
+import org.example.dao.OwnerDAOImpl;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -18,6 +22,8 @@ public class App {
     private static final Scanner scanner = new Scanner(System.in);
     private static final ElectronicDeviceDAO<Television> TelevisionDAO = new ElectronicDeviceDAOImpl<>(Television.class);
     private static final ElectronicDeviceDAO<Smartphone> SmartphoneDAO = new ElectronicDeviceDAOImpl<>(Smartphone.class);
+
+    private static final OwnerDAO ownerDAO = new OwnerDAOImpl();
 
     public static void main(String[] args) {
         adminDirectorMenu();
@@ -32,6 +38,7 @@ public class App {
             System.out.println("2. Добавить товар");
             System.out.println("3. Изменить склад (удаление или изменение товара)");
             System.out.println("5. Тестирование методов классов");
+            System.out.println("7. Показать товары по ВЛАДЕЛЬЦУ");
             System.out.println("9. О программе");
             System.out.println("0. Завершить сеанс работы");
             System.out.print("Выберите действие: ");
@@ -42,6 +49,7 @@ public class App {
                 case 2 -> addStorageItem();
                 case 3 -> changeStorage();
                 case 5 -> checkDevices();
+                case 7 -> showDevicesByOwner();
                 case 9 -> showAbout();
                 case 0 -> System.out.println("Выход...");
                 default -> System.out.println("Некорректный выбор!");
@@ -63,6 +71,7 @@ public class App {
             List<Television> tvs = TelevisionDAO.findAll();
             if (tvs.isEmpty()) System.out.println("Нет телевизоров на складе.");
             for (Television tv : tvs) {
+                System.out.println("Владелец: " + (tv.getOwner() != null ? tv.getOwner().getName() : "Не указан"));
                 System.out.println(tv); // тут вызов toString, сразу (так же как и tv.toString() или tv.displayInfo() );
                 System.out.println("---------------------------");
             }
@@ -70,6 +79,7 @@ public class App {
             List<Smartphone> phones = SmartphoneDAO.findAll();
             if (phones.isEmpty()) System.out.println("Нет смартфонов на складе.");
             for (Smartphone phone : phones) {
+                System.out.println("Владелец: " + (phone.getOwner() != null ? phone.getOwner().getName() : "Не указан"));
                 System.out.println(phone.displayInfo());
                 System.out.println("---------------------------");
             }
@@ -110,7 +120,19 @@ public class App {
             System.out.print("Есть HDR? (1 - да, 0 - нет): ");
             boolean hdr = scanner.nextLine().equals("1");
 
+            System.out.print("Введите имя владельца устройства: ");
+            String ownerName = scanner.nextLine();
+
+            // Проверка — существует ли владелец
+            Owner owner = ownerDAO.findByName(ownerName);
+            if (owner == null) {
+                owner = new Owner(ownerName);
+                ownerDAO.save(owner);
+            }
+
+
             Television tv = new Television(brand, price, channels, smartTV, hdr, screenSize, resolution);
+            tv.setOwner(owner);
             TelevisionDAO.save(tv);
             System.out.println("Телевизор добавлен!");
 
@@ -127,7 +149,18 @@ public class App {
             System.out.print("Введите тип биометрической защиты: ");
             String security = scanner.nextLine();
 
+            System.out.print("Введите имя владельца устройства: ");
+            String ownerName = scanner.nextLine();
+
+            // Проверка — существует ли владелец
+            Owner owner = ownerDAO.findByName(ownerName);
+            if (owner == null) {
+                owner = new Owner(ownerName);
+                ownerDAO.save(owner);
+            }
+
             Smartphone phone = new Smartphone(brand, price, battery, has5G, fastCharge, security, screenSize, resolution);
+            phone.setOwner(owner);
             SmartphoneDAO.save(phone);
             System.out.println("Смартфон добавлен!");
         }
@@ -390,5 +423,31 @@ public class App {
     private static void showAbout() {
         System.out.println("Фабрика Электроники v1.0. Разработано в 2025 году.");
     }
+
+    private static void showDevicesByOwner() {
+        System.out.print("Введите имя владельца: ");
+        String ownerName = scanner.nextLine();
+
+        Owner owner = ownerDAO.findByName(ownerName);
+        if (owner == null) {
+            System.out.println("Такой владелец не найден.");
+            return;
+        }
+
+        List<Television> tvs = TelevisionDAO.findAll();
+        List<Smartphone> phones = SmartphoneDAO.findAll();
+
+        System.out.println("\nТелевизоры владельца " + ownerName + ":");
+        tvs.stream().filter(tv -> tv.getOwner() != null && tv.getOwner().getId() == owner.getId())
+                .forEach(tv -> System.out.println(tv.displayInfo()));
+
+        System.out.println("\nСмартфоны владельца " + ownerName + ":");
+        phones.stream().filter(phone -> phone.getOwner() != null && phone.getOwner().getId() == owner.getId())
+                .forEach(phone -> System.out.println(phone.displayInfo()));
+
+        System.out.println("Нажмите Enter для продолжения...");
+        scanner.nextLine();
+    }
+
 }
 

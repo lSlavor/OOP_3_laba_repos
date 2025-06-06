@@ -21,6 +21,10 @@ public abstract class ElectronicDevice {
     private double screenSize;
     private String resolution;
 
+    @ManyToOne
+    @JoinColumn(name = "owner_id")
+    private Owner owner;
+
     @Transient
     private boolean isOn = false;
 
