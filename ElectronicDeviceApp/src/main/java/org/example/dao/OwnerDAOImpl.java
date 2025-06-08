@@ -38,7 +38,7 @@ public class OwnerDAOImpl implements OwnerDAO {
     public Owner findByName(String name) {
         EntityManager em = emf.createEntityManager();
         try {
-            return em.createQuery("SELECT o FROM Owner o WHERE o.name = :name", Owner.class)
+            return em.createNamedQuery("Owner.findByName", Owner.class)
                     .setParameter("name", name)
                     .getSingleResult();
         } catch (NoResultException e) {

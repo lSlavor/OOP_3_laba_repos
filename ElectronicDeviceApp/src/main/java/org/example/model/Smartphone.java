@@ -17,6 +17,10 @@ public class Smartphone extends ElectronicDevice {
     private boolean hasFastCharging;
     private String biometricSecurity;
 
+    @ManyToOne
+    @JoinColumn(name = "id", insertable = false, updatable = false)
+    private ElectronicDevice electronicDevice;
+
     public Smartphone(String brand, double price, int batteryCapacity, boolean has5G, boolean hasFastCharging,
                       String biometricSecurity, double screenSize, String resolution) {
         super(brand, price, "Смартфон", screenSize, resolution);

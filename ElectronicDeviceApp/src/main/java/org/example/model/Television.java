@@ -16,6 +16,10 @@ public class Television extends ElectronicDevice {
     private boolean hasSmartTV;
     private boolean hasHDR;
 
+    @ManyToOne
+    @JoinColumn(name = "id", insertable = false, updatable = false)
+    private ElectronicDevice electronicDevice;
+
     public Television(String brand, double price, int channelCount, boolean hasSmartTV, boolean hasHDR, double screenSize, String resolution) {
         super(brand, price, "Телевизор", screenSize, resolution);
         this.channelCount = channelCount;

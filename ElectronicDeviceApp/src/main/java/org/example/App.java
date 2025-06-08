@@ -183,7 +183,10 @@ public class App {
         if (cat == 1) {
             List<Television> tvs = TelevisionDAO.findAll();
             for (int i = 0; i < tvs.size(); i++) {
-                System.out.println((i + 1) + ". " + tvs.get(i).displayInfo());
+                Television tv = tvs.get(i);
+                String ownerName = tv.getOwner() != null ? tv.getOwner().getName() : "Не указан";
+                System.out.println((i + 1) + ". Владелец: " + ownerName);
+                System.out.println("    " + tv.displayInfo());
             }
             System.out.print("Выберите номер: ");
             int idx = Integer.parseInt(scanner.nextLine()) - 1;
@@ -202,6 +205,7 @@ public class App {
                     System.out.println("5 - Количество каналов");
                     System.out.println("6 - Smart TV");
                     System.out.println("7 - HDR");
+                    System.out.println("8 - Изменить владельца");
                     System.out.println("0 - Сохранить и выйти");
                     System.out.print("Ваш выбор: ");
                     editChoice = Integer.parseInt(scanner.nextLine());
@@ -235,6 +239,18 @@ public class App {
                             System.out.print("Есть HDR? (1 - да, 0 - нет): ");
                             tv.setHasHDR(scanner.nextLine().equals("1"));
                         }
+                        case 8 -> {
+                            System.out.print("Введите новое имя владельца: ");
+                            String newOwnerName = scanner.nextLine();
+
+                            Owner newOwner = ownerDAO.findByName(newOwnerName);
+                            if (newOwner == null) {
+                                newOwner = new Owner(newOwnerName);
+                                ownerDAO.save(newOwner);
+                            }
+                            tv.setOwner(newOwner);
+                            System.out.println("Новый владелец выбран.");
+                        }
                         case 0 -> System.out.println("Изменения сохранены.");
                         default -> System.out.println("Неверный выбор.");
                     }
@@ -246,7 +262,10 @@ public class App {
         } else if (cat == 2) {
             List<Smartphone> phones = SmartphoneDAO.findAll();
             for (int i = 0; i < phones.size(); i++) {
-                System.out.println((i + 1) + ". " + phones.get(i).displayInfo());
+                Smartphone phone = phones.get(i);
+                String ownerName = phone.getOwner() != null ? phone.getOwner().getName() : "Не указан";
+                System.out.println((i + 1) + ". Владелец: " + ownerName);
+                System.out.println("    " + phone.displayInfo());
             }
             System.out.print("Выберите номер: ");
             int idx = Integer.parseInt(scanner.nextLine()) - 1;
@@ -266,6 +285,7 @@ public class App {
                     System.out.println("6 - 5G");
                     System.out.println("7 - Быстрая зарядка");
                     System.out.println("8 - Биометрия");
+                    System.out.println("9 - Изменить владельца");
                     System.out.println("0 - Сохранить и выйти");
                     System.out.print("Ваш выбор: ");
                     editChoice = Integer.parseInt(scanner.nextLine());
@@ -302,6 +322,18 @@ public class App {
                         case 8 -> {
                             System.out.print("Новый тип биометрии: ");
                             phone.setBiometricSecurity(scanner.nextLine());
+                        }
+                        case 9 -> {
+                            System.out.print("Введите новое имя владельца: ");
+                            String newOwnerName = scanner.nextLine();
+
+                            Owner newOwner = ownerDAO.findByName(newOwnerName);
+                            if (newOwner == null) {
+                                newOwner = new Owner(newOwnerName);
+                                ownerDAO.save(newOwner);
+                            }
+                            phone.setOwner(newOwner);
+                            System.out.println("Новый владелец выбран.");
                         }
                         case 0 -> System.out.println("Изменения сохранены.");
                         default -> System.out.println("Неверный выбор.");
@@ -434,15 +466,18 @@ public class App {
             return;
         }
 
-        List<Television> tvs = TelevisionDAO.findAll();
-        List<Smartphone> phones = SmartphoneDAO.findAll();
+        List<ElectronicDevice> devices = owner.getDevices(); // все устройства владельца
 
         System.out.println("\nТелевизоры владельца " + ownerName + ":");
-        tvs.stream().filter(tv -> tv.getOwner() != null && tv.getOwner().getId() == owner.getId())
+        devices.stream()
+                .filter(device -> device instanceof Television)
+                .map(device -> (Television) device)
                 .forEach(tv -> System.out.println(tv.displayInfo()));
 
         System.out.println("\nСмартфоны владельца " + ownerName + ":");
-        phones.stream().filter(phone -> phone.getOwner() != null && phone.getOwner().getId() == owner.getId())
+        devices.stream()
+                .filter(device -> device instanceof Smartphone)
+                .map(device -> (Smartphone) device)
                 .forEach(phone -> System.out.println(phone.displayInfo()));
 
         System.out.println("Нажмите Enter для продолжения...");

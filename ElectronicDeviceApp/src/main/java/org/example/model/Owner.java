@@ -9,6 +9,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @Entity
+@NamedQuery(name = "Owner.findByName", query = "SELECT o FROM Owner o WHERE o.name = :name")
 @Table(name = "owner")
 public class Owner {
 
@@ -18,7 +19,7 @@ public class Owner {
 
     private String name;
 
-    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ElectronicDevice> devices;
 
     public Owner(String name) {

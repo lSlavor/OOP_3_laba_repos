@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @Entity
@@ -24,6 +26,12 @@ public abstract class ElectronicDevice {
     @ManyToOne
     @JoinColumn(name = "owner_id")
     private Owner owner;
+
+    @OneToMany(mappedBy = "electronicDevice", fetch = FetchType.LAZY)
+    private List<Smartphone> smartphones;
+
+    @OneToMany(mappedBy = "electronicDevice", fetch = FetchType.LAZY)
+    private List<Television> televisions;
 
     @Transient
     private boolean isOn = false;
